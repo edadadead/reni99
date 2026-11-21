@@ -3,101 +3,98 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Wi-Fi TV Remote</title>
+  <title>TV Remote</title>
   <style>
-    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background: #0f0f0f; color: #fff; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; }
-    .remote-body { background: #1c1c1e; width: 100%; max-width: 370px; border-radius: 36px; padding: 22px 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid #2c2c2e; }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; gap: 8px; }
-    .power-btn { background: #ff3b30; color: white; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 18px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
-    .home-top-btn { background: #30d158; color: #000; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 20px; font-weight: bold; cursor: pointer; flex-shrink: 0; }
-    .ip-input { background: #2c2c2e; border: 1px solid #3a3a3c; color: #30d158; padding: 10px 8px; border-radius: 12px; width: 100%; font-size: 14px; font-weight: bold; text-align: center; }
-    
-    .app-row { display: flex; gap: 8px; margin-bottom: 16px; }
-    .app-btn { flex: 1; padding: 12px 6px; border-radius: 12px; border: none; color: white; font-size: 13px; font-weight: 700; cursor: pointer; }
-    .yt { background: #ff0000; }
+    * { box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background: #0f0f0f; color: #fff; margin: 0; padding: 16px; display: flex; justify-content: center; }
+    .remote { background: #1c1c1e; width: 100%; max-width: 370px; border-radius: 28px; padding: 20px; }
+    .row { display: flex; gap: 8px; margin-bottom: 12px; }
+    input { flex: 1; padding: 10px; border-radius: 10px; border: 1px solid #3a3a3c; background: #2c2c2e; color: #30d158; font-weight: bold; }
+    input.text { color: #fff; font-weight: normal; width: 100%; margin-bottom: 10px; }
+    button { flex: 1; padding: 12px; border-radius: 12px; border: none; background: #2c2c2e; color: #fff; font-weight: bold; cursor: pointer; }
+    .home { background: #30d158; color: #000; }
+    .power { background: #ff3b30; color: #fff; flex: 0 0 48px; }
+    .yt { background: #cc0000; }
     .nf { background: #b81d24; }
-    .pv { background: #00a8e1; }
-
-    .search-box { width: 100%; padding: 13px; border-radius: 14px; border: none; background: #2c2c2e; color: white; font-size: 15px; margin-bottom: 10px; }
-    .btn-row { display: flex; gap: 10px; margin-bottom: 16px; }
-    button.ctrl { flex: 1; padding: 14px; border-radius: 16px; border: none; background: #2c2c2e; color: white; font-size: 15px; font-weight: 600; cursor: pointer; }
-    button.ctrl:active, .app-btn:active, .home-top-btn:active { transform: scale(0.95); }
-    button.primary { background: #ff0000; }
-
-    .dpad { background: #2c2c2e; border-radius: 50%; width: 170px; height: 170px; margin: 5px auto 20px; display: flex; align-items: center; justify-content: center; }
-    .ok-btn { width: 74px; height: 74px; border-radius: 50%; background: #3a3a3c; font-size: 20px; border: 2px solid #48484a; color: white; cursor: pointer; }
-    .status { font-size: 12px; color: #8e8e93; text-align: center; margin-top: 8px; }
+    .pv { background: #0088cc; }
+    .status { font-size: 12px; color: #aaa; text-align: center; margin-top: 10px; min-height: 18px; }
   </style>
 </head>
 <body>
-
-  <div class="remote-body">
-    <div class="top-bar">
-      <button class="home-top-btn" onclick="sendCmd('home')" title="TV Home Menu">🏠</button>
-      <input type="text" id="pcIp" class="ip-input" placeholder="192.168.1.X:5050" />
-      <button class="power-btn" onclick="sendCmd('quit')" title="Turn Off TV">⏻</button>
+  <div class="remote">
+    <div class="row">
+      <button class="home" onclick="sendCmd('home')">Home</button>
+      <button onclick="testConn()">Test</button>
+      <button class="power" onclick="sendCmd('quit')">Off</button>
     </div>
 
-    <!-- Streaming App Launchers -->
-    <div class="app-row">
-      <button class="app-btn yt" onclick="sendCmd('launch_app', false, 'youtube')">YouTube</button>
-      <button class="app-btn nf" onclick="sendCmd('launch_app', false, 'netflix')">Netflix</button>
-      <button class="app-btn pv" onclick="sendCmd('launch_app', false, 'prime')">Prime Video</button>
+    <input id="pcAddr" placeholder="192.168.1.50:5050" />
+
+    <div class="row">
+      <button class="yt" onclick="sendCmd('launch_app', false, 'youtube')">YouTube</button>
+      <button class="nf" onclick="sendCmd('launch_app', false, 'netflix')">Netflix</button>
+      <button class="pv" onclick="sendCmd('launch_app', false, 'prime')">Prime</button>
     </div>
 
-    <!-- YouTube Direct Link / Search -->
-    <input type="text" id="urlInput" class="search-box" placeholder="YouTube Link or Search..." />
-    <div class="btn-row">
-      <button class="ctrl primary" onclick="sendCmd('load_url', true)">▶ Play YT</button>
-      <button class="ctrl" onclick="sendCmd('search', true)">🔍 Search</button>
+    <input id="queryBox" class="text" placeholder="YouTube URL or search..." />
+    <div class="row">
+      <button class="yt" onclick="sendCmd('load_url', true)">Play Link</button>
+      <button onclick="sendCmd('search', true)">Search</button>
     </div>
 
-    <!-- Center Play/Pause Button -->
-    <div class="dpad">
-      <button class="ok-btn" onclick="sendCmd('play_pause')">⏯</button>
+    <div class="row">
+      <button onclick="sendCmd('play_pause')">Play/Pause</button>
+      <button onclick="sendCmd('mute')">Mute</button>
+    </div>
+    <div class="row">
+      <button onclick="sendCmd('vol_down')">Vol -</button>
+      <button onclick="sendCmd('vol_up')">Vol +</button>
     </div>
 
-    <!-- Volume & Home Controls -->
-    <div class="btn-row">
-      <button class="ctrl" onclick="sendCmd('vol_down')">🔉 Vol -</button>
-      <button class="ctrl" onclick="sendCmd('mute')">🔇</button>
-      <button class="ctrl" onclick="sendCmd('vol_up')">🔊 Vol +</button>
-    </div>
-
-    <div class="status" id="statusText">Enter the IP shown on your PC Remote</div>
+    <div class="status" id="status">Enter PC IP:5050 and tap Test</div>
   </div>
 
   <script>
-    const ipInput = document.getElementById('pcIp');
-    ipInput.value = localStorage.getItem('tv_pc_ip') || '';
-    ipInput.addEventListener('change', () => {
-      localStorage.setItem('tv_pc_ip', ipInput.value.trim());
-    });
+    const addrEl = document.getElementById('pcAddr');
+    const statusEl = document.getElementById('status');
+    addrEl.value = localStorage.getItem('tv_addr') || '';
+    addrEl.addEventListener('change', () => localStorage.setItem('tv_addr', addrEl.value.trim()));
 
-    async function sendCmd(action, useText = false, directVal = '') {
-      const ip = ipInput.value.trim();
-      const status = document.getElementById('statusText');
-      if (!ip) {
-        status.innerText = "⚠️ Enter your PC IP address first!";
-        return;
+    function baseUrl() {
+      let raw = addrEl.value.trim();
+      if (!raw) return '';
+      if (!raw.startsWith('http://') && !raw.startsWith('https://')) {
+        raw = 'http://' + raw;
       }
+      return raw.replace(/\/+$/, '');
+    }
 
-      const value = useText ? document.getElementById('urlInput').value : directVal;
-      status.innerText = "Sending...";
-
+    async function testConn() {
+      const url = baseUrl();
+      if (!url) return statusEl.textContent = 'Enter PC IP:5050 first';
+      statusEl.textContent = 'Testing ' + url + '...';
       try {
-        const res = await fetch(`http://${ip}/command`, {
+        const r = await fetch(url + '/ping');
+        statusEl.textContent = r.ok ? 'Connected to PC!' : 'HTTP ' + r.status;
+      } catch (e) {
+        statusEl.textContent = 'Failed: ' + e.message + ' (HTTPS->HTTP block or firewall)';
+      }
+    }
+
+    async function sendCmd(action, useBox = false, val = '') {
+      const url = baseUrl();
+      if (!url) return statusEl.textContent = 'Enter PC IP:5050 first';
+      const value = useBox ? document.getElementById('queryBox').value : val;
+      try {
+        const r = await fetch(url + '/command', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action, value })
         });
-        if (res.ok) {
-          status.innerText = "✅ Connected";
-          if (useText) document.getElementById('urlInput').value = '';
-        }
-      } catch (err) {
-        status.innerText = "❌ Blocked or Offline (Check Wi-Fi / HTTPS)";
+        statusEl.textContent = r.ok ? 'Sent: ' + action : 'Error ' + r.status;
+        if (r.ok && useBox) document.getElementById('queryBox').value = '';
+      } catch (e) {
+        statusEl.textContent = 'Blocked/Offline: ' + e.message;
       }
     }
   </script>
