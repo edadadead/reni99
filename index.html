@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Wi-Fi TV Remote</title>
+  <style>
+    * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #0f0f0f; color: #fff; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+    .remote-body { background: #1c1c1e; width: 100%; max-width: 360px; border-radius: 36px; padding: 25px 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); border: 1px solid #2c2c2e; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .power-btn { background: #ff3b30; color: white; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 18px; font-weight: bold; cursor: pointer; }
+    .ip-input { background: #2c2c2e; border: 1px solid #3a3a3c; color: #30d158; padding: 10px 12px; border-radius: 12px; width: 75%; font-size: 14px; font-weight: bold; text-align: center; }
+    .search-box { width: 100%; padding: 14px; border-radius: 14px; border: none; background: #2c2c2e; color: white; font-size: 16px; margin-bottom: 12px; }
+    .btn-row { display: flex; gap: 10px; margin-bottom: 20px; }
+    button { flex: 1; padding: 15px; border-radius: 16px; border: none; background: #2c2c2e; color: white; font-size: 16px; font-weight: 600; cursor: pointer; active: transform: scale(0.96); }
+    button.primary { background: #ff0000; }
+    .dpad { background: #2c2c2e; border-radius: 50%; width: 200px; height: 200px; margin: 10px auto 25px; display: flex; align-items: center; justify-content: center; position: relative; }
+    .ok-btn { width: 80px; height: 80px; border-radius: 50%; background: #3a3a3c; font-size: 18px; border: 2px solid #48484a; }
+    .status { font-size: 12px; color: #8e8e93; text-align: center; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+  <div class="remote-body">
+    <div class="top-bar">
+      <input type="text" id="pcIp" class="ip-input" placeholder="192.168.1.X:5050" />
+      <button class="power-btn" onclick="sendCmd('quit')" title="Turn Off TV">⏻</button>
+    </div>
+
+    <input type="text" id="urlInput" class="search-box" placeholder="YouTube URL or Search..." />
+    <div class="btn-row">
+      <button class="primary" onclick="sendCmd('load_url', true)">▶ Play Link</button>
+      <button onclick="sendCmd('search', true)">🔍 Search</button>
+    </div>
+
+    <div class="dpad">
+      <button class="ok-btn" onclick="sendCmd('play_pause')">⏯</button>
+    </div>
+
+    <div class="btn-row">
+      <button onclick="sendCmd('vol_down')">🔉 Vol -</button>
+      <button onclick="sendCmd('mute')">🔇</button>
+      <button onclick="sendCmd('vol_up')">🔊 Vol +</button>
+    </div>
+
+    <div class="btn-row">
+      <button onclick="sendCmd('home')">🏠 YouTube Home</button>
+    </div>
+
+    <div class="status" id="statusText">Enter the IP shown on your PC Remote</div>
+  </div>
+
+  <script>
+    const ipInput = document.getElementById('pcIp');
+    // Remember IP address on phone
+    ipInput.value = localStorage.getItem('tv_pc_ip') || '';
+    ipInput.addEventListener('change', () => {
+      localStorage.setItem('tv_pc_ip', ipInput.value.trim());
+    });
+
+    async function sendCmd(action, useText = false) {
+      const ip = ipInput.value.trim();
+      const status = document.getElementById('statusText');
+      if (!ip) {
+        status.innerText = "⚠️ Enter your PC IP address first!";
+        return;
+      }
+
+      const value = useText ? document.getElementById('urlInput').value : '';
+      status.innerText = "Sending...";
+
+      try {
+        const res = await fetch(`http://${ip}/command`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, value })
+        });
+        if (res.ok) {
+          status.innerText = "✅ Connected";
+          if (useText) document.getElementById('urlInput').value = '';
+        }
+      } catch (err) {
+        status.innerText = "❌ Blocked or Offline (Check Wi-Fi / HTTPS)";
+      }
+    }
+  </script>
+</body>
+</html>
